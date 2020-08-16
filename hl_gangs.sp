@@ -62,6 +62,7 @@ ConVar gcv_fHealthModifier;
 ConVar gcv_iGangSizeMaxUpgrades;
 ConVar gcv_bTerroristOnly;
 ConVar gcv_bCTKillsOrLRs;
+ConVar gcv_CountAllKills;
 
 /* Forwards */
 Handle g_hOnMainMenu;
@@ -287,7 +288,9 @@ public void OnPluginStart()
 	
 	gcv_bTerroristOnly = AutoExecConfig_CreateConVar("hl_gangs_terrorist_only", "1", "Determines if perks are only for terrorists\n Set 1 for default jailbreak behavior");
 
-	gcv_bCTKillsOrLRs = AutoExecConfig_CreateConVar("hl_gangs_stats_mode", "1", "Sets the type of statistic tracking\n Set 1 for ct kills, 0 for last requests (hosties required)");
+	gcv_bCTKillsOrLRs = AutoExecConfig_CreateConVar("hl_gangs_stats_mode", "2", "Sets the type of statistic tracking\n Set 2 for normal kill, Set 1 for ct kills, 0 for last requests (hosties required)", _, true, 0.0, true, 2.0);
+
+	gcv_CountAllKills = AutoExecConfig_CreateConVar("hl_gangs_count_all_kills", "1", "Count all kills? 1 - Yes, 0 - Only CT Kills", _, true, 0.0, true, 1.0);
 
 	/* Perk Disabling */
 	gcv_bDisableDamage = AutoExecConfig_CreateConVar("hl_gangs_damage", "0", "Disable the damage perk?\n Set 1 to disable");
@@ -609,7 +612,7 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 	
  	if (IsValidClient(attacker) && IsValidClient(client) && client != attacker && ga_bHasGang[attacker])
 	{
-		if (IsPlayerGangable(attacker) && GetClientTeam(client) == 3 && !StrEqual(ga_sGangName[attacker], ga_sGangName[client]))
+		if (IsPlayerGangable(attacker) && ((gcv_CountAllKills.BoolValue && GetClientTeam(client) != GetClientTeam(attacker)) || (!gcv_CountAllKills.BoolValue && GetClientTeam(client) == 3)) && !StrEqual(ga_sGangName[attacker], ga_sGangName[client]))
 		{
 			ga_iCTKills[attacker]++;
 			char sQuery[300];
@@ -2355,7 +2358,7 @@ void StartOpeningTopGangsMenu(int client)
 {
 	if (IsValidClient(client))
 	{
-		if (gcv_bCTKillsOrLRs.BoolValue)
+		if (gcv_bCTKillsOrLRs.IntValue == 1 || gcv_bCTKillsOrLRs.IntValue == 2)
 		{
 			g_hDatabase.Query(SQL_Callback_TopMenu, "SELECT * FROM hl_gangs_statistics ORDER BY ctkills DESC", GetClientUserId(client));
 		}
@@ -2502,7 +2505,11 @@ public void SQL_Callback_GangStatistics(Database db, DBResultSet results, const 
 		Format(sDisplayString, sizeof(sDisplayString), "%T : %s", "CreatedBy", client, sTempArray[1]);
 		menu.AddItem("", sDisplayString, ITEMDRAW_DISABLED);
 
-		if (gcv_bCTKillsOrLRs.BoolValue)
+		if (gcv_bCTKillsOrLRs.IntValue == 2)
+		{
+			Format(sDisplayString, sizeof(sDisplayString), "%T : %i ", "Kills", client, ga_iTempInt[client]);
+		}
+		else if (gcv_bCTKillsOrLRs.IntValue == 1)
 		{
 			Format(sDisplayString, sizeof(sDisplayString), "%T : %i ", "CTKills", client, ga_iTempInt[client]);
 			menu.AddItem("", sDisplayString, ITEMDRAW_DISABLED);
