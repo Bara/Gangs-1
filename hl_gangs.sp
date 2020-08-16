@@ -539,7 +539,7 @@ public Action OnTakeDamage(int victim, int &attacker, int &inflictor, float &dam
 		return Plugin_Continue;
 	}
 	
-	if (!g_bDisablePerks && IsValidClient(attacker) && IsValidClient(victim) && ga_bHasGang[attacker] && attacker != victim && GetClientTeam(victim) == 3 && IsPlayerGangable(attacker))
+	if (!g_bDisablePerks && IsValidClient(attacker) && IsValidClient(victim) && ga_bHasGang[attacker] && attacker != victim && ((gcv_CountAllKills.BoolValue && GetClientTeam(victim) != GetClientTeam(attacker)) || (!gcv_CountAllKills.BoolValue && GetClientTeam(victim) == 3)) && IsPlayerGangable(attacker))
 	{
 		char sWeapon[32];
 		GetClientWeapon(attacker, sWeapon, sizeof(sWeapon)); 
