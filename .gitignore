@@ -1,7 +1,6 @@
 .vscode/
 .vs/
 .idea/
-*.smx
 addons/sourcemod/scripting/surftimer-api.sp
 .DS_Store
 addons/sourcemod/scripting/compile.exe
