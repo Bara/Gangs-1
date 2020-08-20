@@ -21,6 +21,7 @@
 #include <cstrike>
 #include <autoexecconfig>
 #include <hl_gangs>
+#include <multicolors>
 
 #undef REQUIRE_PLUGIN
 #include <hosties>
@@ -320,6 +321,7 @@ public void OnPluginStart()
 	
 	RegConsoleCmd("sm_gang", Command_Gang, "Open the gang menu!");
 	RegConsoleCmd("sm_gangs", Command_Gang, "Open the gang menu!");
+	RegConsoleCmd("sm_g", Command_GangChat, "Command for gang chat");
 
 	if (gcv_bInviteStyle.BoolValue)
 	{
@@ -942,6 +944,27 @@ public Action Command_Gang(int client, int args)
 	return Plugin_Handled;
 }
 
+public Action Command_GangChat(int client, int args)
+{
+	if (!IsValidClient(client) || strlen(ga_sGangName[client]) < 1 || !IsPlayerGangable(client))
+	{
+		return;
+	}
+
+	char sMessage[MAX_MESSAGE_LENGTH];
+	GetCmdArgString(sMessage, sizeof(sMessage));
+
+	TrimString(sMessage);
+	StripQuotes(sMessage);
+
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		if (IsValidClient(i) && StrEqual(ga_sGangName[i], ga_sGangName[client]))
+		{
+			CPrintToChat(i, "{red}[%s] {green}%N{default}: %s", ga_sGangName[i], i, sMessage);
+		}
+	}
+}
 
 /*****************************************************************
 *********************** MAIN GANG MENU  **************************
