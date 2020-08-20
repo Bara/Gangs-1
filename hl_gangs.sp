@@ -961,7 +961,7 @@ public Action Command_GangChat(int client, int args)
 	{
 		if (IsValidClient(i) && StrEqual(ga_sGangName[i], ga_sGangName[client]))
 		{
-			CPrintToChat(i, "{red}[%s] {green}%N{default}: %s", ga_sGangName[i], i, sMessage);
+			CPrintToChat(i, "{red}[%s] {green}%N{default}: %s", ga_sGangName[client], client, sMessage);
 		}
 	}
 }
