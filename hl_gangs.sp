@@ -66,6 +66,7 @@ ConVar gcv_bCTKillsOrLRs;
 ConVar gcv_CountAllKills;
 ConVar gcv_ShowGangName;
 ConVar gcv_NameGangChat;
+ConVar gcv_BlockClantagChange;
 
 /* Forwards */
 Handle g_hOnMainMenu;
@@ -299,6 +300,8 @@ public void OnPluginStart()
 
 	gcv_NameGangChat = AutoExecConfig_CreateConVar("hl_gangs_gang_name", "Gang", "Which name as prefix for gang messages should be displayed?");
 
+	gcv_BlockClantagChange = AutoExecConfig_CreateConVar("hl_gangs_block_clantag_changes", "1", "Block changing of clantag? (0 - No, 1 - Yes)", _, true, 0.0, true, 1.0);
+
 	/* Perk Disabling */
 	gcv_bDisableDamage = AutoExecConfig_CreateConVar("hl_gangs_damage", "0", "Disable the damage perk?\n Set 1 to disable");
 	gcv_bDisableHealth = AutoExecConfig_CreateConVar("hl_gangs_health", "0", "Disable the health perk?\n Set 1 to disable");
@@ -449,6 +452,8 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 			{
 				return Plugin_Continue;
 			}
+
+			CS_SetClientClanTag(client, ga_sGangName[client]);
 			
 			if (ga_iHealth[client] != 0 && !gcv_bDisableHealth.BoolValue)
 			{
@@ -466,6 +471,24 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 				SetEntPropFloat(client, Prop_Send, "m_flLaggedMovementValue", GetClientSpeedAmmount(client));
 			}
 		}
+	}
+	
+	return Plugin_Continue;
+}
+
+public Action OnClientCommandKeyValues(int client, KeyValues kv)
+{
+	if (gcv_BlockClantagChange.BoolValue)
+	{
+		return Plugin_Continue;
+	}
+
+	char sCommand[64];
+	
+	if (kv.GetSectionName(sCommand, sizeof(sCommand)) && StrEqual(sCommand, "ClanTagChanged", false))
+	{
+		CS_SetClientClanTag(client, ga_sGangName[client]);
+		return Plugin_Handled;
 	}
 	
 	return Plugin_Continue;
@@ -765,6 +788,8 @@ public void SQLCallback_CheckSQL_Player(Database db, DBResultSet results, const 
 			ga_iGravity[client] = 0;
 			ga_iSpeed[client] = 0;
 			ga_iSize[client] = 0;
+
+			CS_SetClientClanTag(client, ga_sGangName[client]);
 
 			char sQuery_2[300];
 			Format(sQuery_2, sizeof(sQuery_2), "SELECT * FROM hl_gangs_groups WHERE gang=\"%s\"", ga_sGangName[client]);
