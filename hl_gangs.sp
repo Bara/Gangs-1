@@ -624,7 +624,7 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 				{
 					if (StrEqual(ga_sGangName[i], ga_sGangName[attacker]))
 					{
-						ga_iCTKills[i]++;
+						ga_iCTKills[i] = ga_iCTKills[attacker];
 					}
 				}
 			}
