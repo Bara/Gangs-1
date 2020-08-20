@@ -64,6 +64,8 @@ ConVar gcv_iGangSizeMaxUpgrades;
 ConVar gcv_bTerroristOnly;
 ConVar gcv_bCTKillsOrLRs;
 ConVar gcv_CountAllKills;
+ConVar gcv_ShowGangName;
+ConVar gcv_NameGangChat;
 
 /* Forwards */
 Handle g_hOnMainMenu;
@@ -293,13 +295,17 @@ public void OnPluginStart()
 
 	gcv_CountAllKills = AutoExecConfig_CreateConVar("hl_gangs_count_all_kills", "1", "Count all kills? 1 - Yes, 0 - Only CT Kills", _, true, 0.0, true, 1.0);
 
+	gcv_ShowGangName = AutoExecConfig_CreateConVar("hl_gangs_show_gang_name", "1", "Show gang name as prefix for gang messages? (0 - No (Name must be defined with 'hl_gangs_gang_name'), 1 - Yes)",_ , true, 0.0, true, 1.0);
+
+	gcv_NameGangChat = AutoExecConfig_CreateConVar("hl_gangs_gang_name", "Gang", "Which name as prefix for gang messages should be displayed?");
+
 	/* Perk Disabling */
 	gcv_bDisableDamage = AutoExecConfig_CreateConVar("hl_gangs_damage", "0", "Disable the damage perk?\n Set 1 to disable");
 	gcv_bDisableHealth = AutoExecConfig_CreateConVar("hl_gangs_health", "0", "Disable the health perk?\n Set 1 to disable");
 	gcv_bDisableSpeed = AutoExecConfig_CreateConVar("hl_gangs_speed", "0", "Disable the speed perk?\n Set 1 to disable");
 	gcv_bDisableGravity = AutoExecConfig_CreateConVar("hl_gangs_gravity", "0", "Disable the gravity perk?\n Set 1 to disable");
 	gcv_bDisableSize = AutoExecConfig_CreateConVar("hl_gangs_size", "0", "Disable the size perk?\n Set 1 to disable");
-	
+
 	AutoExecConfig_ExecuteFile();
 	AutoExecConfig_CleanFile();
 
@@ -957,11 +963,22 @@ public Action Command_GangChat(int client, int args)
 	TrimString(sMessage);
 	StripQuotes(sMessage);
 
+	char sGangName[128];
+
+	if (gcv_ShowGangName.BoolValue)
+	{
+		strcopy(sGangName, sizeof(sGangName), ga_sGangName[client]);
+	}
+	else
+	{
+		gcv_NameGangChat.GetString(sGangName, sizeof(sGangName));
+	}
+
 	for (int i = 1; i <= MaxClients; i++)
 	{
 		if (IsValidClient(i) && StrEqual(ga_sGangName[i], ga_sGangName[client]))
 		{
-			CPrintToChat(i, "{red}[%s] {green}%N{default}: %s", ga_sGangName[client], client, sMessage);
+			CPrintToChat(i, "{red}[%s] {green}%N{default}: %s", sGangName, client, sMessage);
 		}
 	}
 }
